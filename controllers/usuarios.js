@@ -4,19 +4,26 @@ const {httpCodes} = require('../enums/httpStatusCodes');
 const { generateJWT } = require('../helpers/jwt');
 
 const getUsers = async (req, res) => {
-    const usuarios = await Usuario.find({},'role google id nombre email');
-    if(req.role != "USER_ROLE") {
-        res.json({
-            ok: true,
-            usuarios,
-            uid:req.uid
-        })
-    } else {
+    if(req.role == "USER_ROLE") {
         res.status(httpCodes.Unauthorized).json( {
             ok:false,
             msg: "You don't have access to see this response"
         })
     }
+    const from = Number(req.query.from) || 0;
+    const take = Number(req.query.take) || 5;
+    const [usuarios,total] = await Promise.all([
+         Usuario.find({},'role google id nombre email img').skip(from).limit(take),
+         Usuario.count()
+    ])
+    
+    res.json({
+        ok: true,
+        usuarios,
+        total,
+        uid:req.uid
+    })
+       
     
 }
 
