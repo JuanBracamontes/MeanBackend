@@ -92,10 +92,7 @@ const getImage = async (req, res) => {
 
     const pathImg = path.join(__dirname,`../uploads/${folder}/${idImage}`);
     if(!fs.existsSync(pathImg)){
-        return res.status(httpCodes.NotFound).json({
-            ok:false,
-            msg:"Photo not found"
-        })
+        return res.sendFile(path.join(__dirname,`../uploads/nopagefound.jpg`));
     }
     res.sendFile(pathImg);
 }
