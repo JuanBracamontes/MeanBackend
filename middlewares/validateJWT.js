@@ -1,6 +1,7 @@
 const { httpCodes } = require("../enums/httpStatusCodes");
 const jwt = require('jsonwebtoken');
 
+
 const validateToken = (req, res, next) => {
     //read token from headers
     const token = req.header('x-token');
@@ -13,7 +14,7 @@ const validateToken = (req, res, next) => {
 
     try { 
         //validating token with same secret key
-        const {uid,role,exp} = jwt.verify(token,process.env.JWT_SECRET);
+        const {uid,role,exp,email} = jwt.verify(token,process.env.JWT_SECRET);
 
         var expDate = exp * 1000;
         var today =  new Date();
@@ -29,6 +30,7 @@ const validateToken = (req, res, next) => {
         //adding data to request obj
         req.uid = uid;
         req.role = role;
+        req.email = email;
         
         next();
     } catch(err) { 

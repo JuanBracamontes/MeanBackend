@@ -3,7 +3,8 @@ const { httpCodes } = require('../enums/httpStatusCodes');
 const bcrypt = require("bcryptjs");
 const {generateJWT} = require('../helpers/jwt')
 const Usuario = require('../models/usuario');
-const {googleVerify} = require('../helpers/google-verify')
+const {googleVerify} = require('../helpers/google-verify');
+const jwt_decode = require('jwt-decode');
 
 const login = async (req, res = response) => {
     try {
@@ -83,7 +84,19 @@ const googleSignIn = async (req,res) => {
     }
 }
 
+const renewToken = async (req, res = response) => {
+    var token = await generateJWT({uid:req.uid,email:req.email,role:req.role});
+    var tokenDecoded = jwt_decode(token);
+    res.json({
+        ok:true,
+        token,
+        uid:req.uid,
+        tokenDecoded
+    })
+}
+
 module.exports = {
     login,
-    googleSignIn
+    googleSignIn,
+    renewToken
 }

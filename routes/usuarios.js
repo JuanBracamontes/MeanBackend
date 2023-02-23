@@ -4,9 +4,10 @@ const {Router} = require('express');
 const {getUsers,createUser,updateUser,deleteUser} = require('../controllers/usuarios');
 const {validateFields} = require('../middlewares/fieldsValidator');
 const { validateToken } = require('../middlewares/validateJWT');
+const { onlyAdminPolicy } = require('../middlewares/Policies/policiesJWT');
 const router = Router();
 
-router.get('/', validateToken ,getUsers);
+router.get('/', [validateToken,onlyAdminPolicy] ,getUsers);
 router.post('/', [
     check('nombre').not().isEmpty(),
     check('password').not().isEmpty(),

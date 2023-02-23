@@ -2,6 +2,9 @@ const {response} = require('express');
 const { Schema } = require('mongoose');
 const { httpCodes } = require('../enums/httpStatusCodes');
 const Medico = require('../models/doctores');
+const {checkValidEntity, mapChangesAndUpdate} = require('../helpers/entitiesHelpers')
+
+const entity = "medico";
 
 const getDoctorById = async (req,res) =>  {
     let uid = req.params.id;
@@ -25,21 +28,12 @@ const getAllDoctors = async (req, res)  => {
     const medicos = await Medico.find()
                                 .populate('usuario','nombre img')
                                 .populate('hospital','nombre img');
-
-    console.log(medicos);
-                                
-    if(req.role != "USER_ROLE") {
-        res.json({
-            ok: true,
-            medicos,
-            uid:req.uid
-        })
-    } else {
-        res.status(httpCodes.Unauthorized).json( {
-            ok:false,
-            msg: "You don't have access to see this response"
-        })
-    }
+       
+    res.json({
+        ok: true,
+        medicos,
+        uid:req.uid
+    })
 }
 
 const createDoctor = async (req, res = response) =>  {
@@ -63,15 +57,11 @@ const createDoctor = async (req, res = response) =>  {
 }
 
 const deleteDoctor = async (req, res = response) => {
-    debugger;
     //get parameters sended via request
     const uid = req.params.id;
-    const doctorFound = await Medico.findById(uid)
-    if(!doctorFound) {
-        return res.status(httpCodes.BadRequest).json({
-            ok:false,
-            msg: "Doctor not found"
-        })
+    var response = await checkValidEntity({id,entity},res);
+    if(!response.entityFound) {
+        return response.res;
     }
 
     await Medico.findByIdAndRemove(uid);
@@ -82,11 +72,24 @@ const deleteDoctor = async (req, res = response) => {
     })
 }
 
-const updateDoctor = () => {
-    res.json({
-        ok:true,
-        msg: 'actualizando un doctor'
-    })
+const updateDoctor = async (req,res = response)  => {
+    try {
+        const id  = req.params.id;
+        var response = await checkValidEntity({id,entity},res);
+        if(!response.entityFound) {
+            return response.res;
+        }
+        const doctorUpdated = await mapChangesAndUpdate({id,usuario:req.uid,changes:{...req.body},entity});
+        res.json({
+            ok:true,
+            doctor:doctorUpdated
+        })
+    }catch(err) { 
+        res.status(httpCodes.InternalServerError).json({
+            ok:false,
+            msg:err.message
+        })
+    }
 }
 
 
